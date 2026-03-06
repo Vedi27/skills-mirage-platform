@@ -41,7 +41,7 @@ export default async function DashboardPage() {
           Command Center
         </h1>
         <p className="text-muted-foreground">
-          Welcome back, {profile?.job_title || 'Agent'}. Here&apos;s your workforce intelligence briefing.
+          Welcome back, {profile?.full_name || profile?.job_title || 'Agent'}. Here&apos;s your workforce intelligence briefing.
         </p>
       </div>
 

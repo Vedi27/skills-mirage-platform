@@ -1,9 +1,8 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { type NextRequest } from 'next/server'
+import { updateSession } from '@/lib/supabase/proxy'
 
 export async function middleware(request: NextRequest) {
-  // Authentication bypassed for development/preview
-  // All routes are accessible without login
-  return NextResponse.next()
+  return await updateSession(request)
 }
 
 export const config = {

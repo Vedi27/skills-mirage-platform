@@ -8,6 +8,30 @@ This repository is linked to a [v0](https://v0.app) project. You can continue de
 
 [Continue working on v0 →](https://v0.app/chat/projects/prj_JYZzEJShlSpxUMRdrkT0Fw44yd9P)
 
+## Authentication (Google + Supabase)
+
+The app supports **Google sign-in** and email/password. User data is stored in Supabase and validated via Supabase Auth.
+
+### 1. Supabase
+
+- Create a project at [supabase.com](https://supabase.com) and add to `.env.local`:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- In **Authentication → URL Configuration**, set **Site URL** (e.g. `http://localhost:3000`) and add **Redirect URLs**:
+  - `http://localhost:3000/auth/callback`
+  - Your production URL, e.g. `https://yourdomain.com/auth/callback`
+- Run the SQL in `scripts/001_create_profiles.sql`, then `scripts/002_profiles_google_oauth.sql` in the Supabase SQL editor to create/update the `profiles` table and trigger.
+
+### 2. Google OAuth
+
+- In [Google Cloud Console](https://console.cloud.google.com/), create (or select) a project and enable the **Google+ API** / **Google Identity** (Credentials).
+- Create an **OAuth 2.0 Client ID** (Web application). Add:
+  - **Authorized JavaScript origins:** `http://localhost:3000`, your production origin (e.g. `https://yourdomain.com`)
+  - **Authorized redirect URIs:** `https://<your-supabase-project-ref>.supabase.co/auth/v1/callback` (from Supabase Dashboard → Authentication → Providers → Google)
+- In Supabase Dashboard → **Authentication → Providers**, enable **Google** and paste the Client ID and Client Secret.
+
+After this, "Continue with Google" on the login and sign-up pages will work; the auth callback will exchange the code for a session and new users will get a row in `profiles` (including `full_name` and `avatar_url` for Google sign-ins).
+
 ## Getting Started
 
 First, run the development server:
