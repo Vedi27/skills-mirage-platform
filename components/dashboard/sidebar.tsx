@@ -21,7 +21,6 @@ import {
   TrendingUp,
   Target,
   Brain,
-  MessageSquare,
   User as UserIcon,
   Settings,
   LogOut,
@@ -66,12 +65,6 @@ const mainNavItems = [
     href: '/dashboard/reskilling',
     icon: Brain,
     description: 'Career transitions',
-  },
-  {
-    title: 'Intel Agent',
-    href: '/dashboard/chat',
-    icon: MessageSquare,
-    description: 'AI assistant',
   },
 ]
 
@@ -129,7 +122,7 @@ export function DashboardSidebar({ user, profile }: DashboardSidebarProps) {
                       isActive={isActive}
                       className={isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
                     >
-                      <Link href={item.href} className="flex items-center gap-3">
+                      <Link href={item.href} prefetch className="flex items-center gap-3">
                         <item.icon className={`w-4 h-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                         <div className="flex flex-col">
                           <span className="text-sm">{item.title}</span>
@@ -159,7 +152,7 @@ export function DashboardSidebar({ user, profile }: DashboardSidebarProps) {
                       isActive={isActive}
                       className={isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : ''}
                     >
-                      <Link href={item.href} className="flex items-center gap-3">
+                      <Link href={item.href} prefetch className="flex items-center gap-3">
                         <item.icon className={`w-4 h-4 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                         <span className="text-sm">{item.title}</span>
                       </Link>

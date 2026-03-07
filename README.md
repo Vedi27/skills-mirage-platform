@@ -32,6 +32,12 @@ The app supports **Google sign-in** and email/password. User data is stored in S
 
 After this, "Continue with Google" on the login and sign-up pages will work; the auth callback will exchange the code for a session and new users will get a row in `profiles` (including `full_name` and `avatar_url` for Google sign-ins).
 
+### 3. Streamlit Chatbot (optional)
+
+- Add to `.env.local` to show the floating chatbot button on all dashboard pages:
+  - `NEXT_PUBLIC_STREAMLIT_CHATBOT_URL` – full URL of your Streamlit chatbot (e.g. `https://your-chatbot.streamlit.app`)
+- When set, a floating button appears at the bottom-right; clicking it opens the chatbot in a split view (30% of the screen on the right).
+
 ## Getting Started
 
 First, run the development server:

@@ -2,7 +2,7 @@
 
 import { User } from '@supabase/supabase-js'
 import { SidebarTrigger } from '@/components/ui/sidebar'
-import { Bell, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -39,13 +39,6 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
           <span>Live Data</span>
         </div>
 
-        {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
-          <Bell className="w-5 h-5" />
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive text-[10px] text-destructive-foreground rounded-full flex items-center justify-center">
-            3
-          </span>
-        </Button>
       </div>
     </header>
   )
