@@ -145,15 +145,7 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="p-6 rounded-xl border border-border/50 bg-card/50 backdrop-blur hover:bg-card/80 transition-colors">
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 border border-primary/30">
-                <MessageSquare className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">AI Intel Agent</h3>
-              <p className="text-sm text-muted-foreground">
-                Chat with your personal career intelligence agent for insights and recommendations.
-              </p>
-            </div>
+            
 
             <div className="p-6 rounded-xl border border-border/50 bg-card/50 backdrop-blur hover:bg-card/80 transition-colors">
               <div className="w-12 h-12 rounded-lg bg-chart-5/10 flex items-center justify-center mb-4 border border-chart-5/30">

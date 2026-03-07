@@ -1,65 +1,259 @@
-# skills-mirage-platform
+# Skills Mirage – Workforce Intelligence Platform
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [v0](https://v0.app).
+**Skills Mirage** is a workforce intelligence platform for individual workers. It combines live job-market data, automation-risk analysis, and reskilling recommendations into a single dashboard, backed by Supabase and a data-aware AI assistant.
 
-## Built with v0
+The platform is built as a modern **Next.js** app with **Supabase** for auth and data, Python services for scraping and scoring, and a separate **Streamlit** deployment for a powerful *Career Intelligence Chatbot*.
 
-This repository is linked to a [v0](https://v0.app) project. You can continue developing by visiting the link below -- start new chats to make changes, and v0 will push commits directly to this repo. Every merge to `main` will automatically deploy.
+---
 
-[Continue working on v0 →](https://v0.app/chat/projects/prj_JYZzEJShlSpxUMRdrkT0Fw44yd9P)
+## Features
 
-## Authentication (Google + Supabase)
+### Command Center (Overview)
 
-The app supports **Google sign-in** and email/password. User data is stored in Supabase and validated via Supabase Auth.
+- High-level "what this platform does" introduction
+- Clear navigation into:
+  - **Market Signals**
+  - **Risk Analysis**
+  - **Reskilling Paths**
+  - **Castor** (chatbot)
+  - **Profile**
 
-### 1. Supabase
+### Market Signals
 
-- Create a project at [supabase.com](https://supabase.com) and add to `.env.local`:
-  - `NEXT_PUBLIC_SUPABASE_URL`
-  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- In **Authentication → URL Configuration**, set **Site URL** (e.g. `http://localhost:3000`) and add **Redirect URLs**:
-  - `http://localhost:3000/auth/callback`
-  - Your production URL, e.g. `https://yourdomain.com/auth/callback`
-- Run the SQL in `scripts/001_create_profiles.sql`, then `scripts/002_profiles_google_oauth.sql` in the Supabase SQL editor to create/update the `profiles` table and trigger.
+Personalized labour-market intelligence for the logged-in user's role:
 
-### 2. Google OAuth
+- **Active job postings** – Total postings for the user's `job_title`
+- **Average salary in ₹** – Computed from `jobs.payrate` for relevant roles
+- **Demand index** – Simple 0–100 signal based on volume of postings
+- **Top location** – Most active city/location for the role
+- **Job Market Trends**
+  - Combines `naukri_jobs` and `jobs` data
+  - Groups postings by month across the available date range
+  - Filtered by the user's `profiles.job_title`
+- **Recent Job Postings**
+  - Uses only `naukri_jobs`, filtered by the logged-in user's `job_title`
+  - If no postings match, shows a clear *"No current job postings for that role"* message
 
-- In [Google Cloud Console](https://console.cloud.google.com/), create (or select) a project and enable the **Google+ API** / **Google Identity** (Credentials).
-- Create an **OAuth 2.0 Client ID** (Web application). Add:
-  - **Authorized JavaScript origins:** `http://localhost:3000`, your production origin (e.g. `https://yourdomain.com`)
-  - **Authorized redirect URIs:** `https://<your-supabase-project-ref>.supabase.co/auth/v1/callback` (from Supabase Dashboard → Authentication → Providers → Google)
-- In Supabase Dashboard → **Authentication → Providers**, enable **Google** and paste the Client ID and Client Secret.
+**Tables used:** `profiles`, `naukri_jobs`, `jobs`
 
-After this, "Continue with Google" on the login and sign-up pages will work; the auth callback will exchange the code for a session and new users will get a row in `profiles` (including `full_name` and `avatar_url` for Google sign-ins).
+### Risk Analysis
 
-### 3. Streamlit Chatbot (optional)
+An automation-exposure dashboard for the user's role:
 
-- Add to `.env.local` to show the floating chatbot button on all dashboard pages:
-  - `NEXT_PUBLIC_STREAMLIT_CHATBOT_URL` – full URL of your Streamlit chatbot (e.g. `https://your-chatbot.streamlit.app`)
-- When set, a floating button appears at the bottom-right; clicking it opens the chatbot in a split view (30% of the screen on the right).
+- **Overall Risk Score** with risk level badge (Low / Medium / High / Critical)
+- **Task Automation**, **AI Replacement Risk**, **Market Saturation**
+- **Risk Gauge** visualization (radial gauge combining the above)
+- **Task-level analysis** – Breaks down the role into daily tasks and highlights which are more automatable vs safer
+- **Automation timeline** – Simple narrative on when different parts of the role may be impacted
 
-## Getting Started
+Backed by Supabase `profiles` (`job_title`, `daily_tasks`, `city`) and a risk-analysis helper (`fetchRiskAnalysis`) that can be wired to your Python scoring engine.
 
-First, run the development server:
+### Reskilling Paths
+
+Role-aware reskilling recommendations built on your `courses` table:
+
+- Uses `profiles.job_title` to build an intelligent "search profile"
+- **Role taxonomy** mapping (e.g. *software engineer* → system design, data structures, cloud computing, etc.)
+- Filters and ranks courses by title/discipline matches and relevance scoring
+- Groups courses into a small number of **paths** (disciplines), each showing top courses
+- **Alignment metrics:** Current alignment, target alignment (e.g. 95%), and "critical skills to acquire"
+
+Only shows courses that match the current user's `job_title`; if none match, displays *"No courses are available"* with an explanation.
+
+### Castor (In-App Chatbot)
+
+A built-in chatbot inside the dashboard:
+
+- Uses Supabase for auth and chat history (`chat_messages` table)
+- Contextual awareness: job title, city, years of experience
+- **Rule-based, data-backed answers** (no external paid LLM API in this version), e.g.:
+  - "How many BPO jobs are in Indore right now?"
+  - "Show me paths that take less than 3 months"
+  - "Why is my risk score so high?"
+- Supports **English and Hindi** – detects Devanagari and answers in Hindi when appropriate
+- Persists messages per user in Supabase
+
+### Streamlit Career Intelligence Chatbot (Separate Deployment)
+
+In addition to the in-app Intel Agent, a **separate Streamlit app** is deployed:
+
+- **`Chatbot/chatbot.py`**
+- Uses **Supabase** (`naukri_jobs`, `jobs`) as the primary data source and **Groq LLM** (`ChatGroq` with `llama-3.3-70b-versatile`)
+- Optional Google Translate for Hindi/English handling
+- Tool- and data-aware: reads tables to answer job-market questions and understands the detailed `naukri_jobs` and `jobs` schemas
+- **Deployed independently on Streamlit** (as in your current setup)
+
+---
+
+## Architecture
+
+### High-Level
+
+- **Frontend:** Next.js (App Router) + React + Tailwind
+- **Backend (web):** Next.js API routes (`/api/chat`, `/api/chatbot`)
+- **Data:** Supabase (Postgres + Auth + RLS)
+- **Python services:** Scrapers, risk scoring & vulnerability analysis, Streamlit chatbot
+
+### Data Flow
+
+- Users log in via Supabase Auth and get a `profiles` row
+- Dashboard pages (server components) fetch profile via Supabase SSR client and market/jobs/courses via service-role admin client
+- Risk engine can be wired to Python services that write scores into tables the app reads
+- **Chat:** In-app Intel Agent uses `/api/chatbot` (Supabase + rules); Streamlit chatbot reads Supabase directly and uses Groq LLM for responses
+
+---
+
+## Tech Stack
+
+| Layer        | Technologies |
+|-------------|---------------|
+| **Frontend** | Next.js 16, React 19, Tailwind CSS 4, Radix UI, Recharts |
+| **Backend/API** | Next.js API routes, `@supabase/ssr`, `@supabase/supabase-js` v2 |
+| **Data**    | Supabase Postgres |
+| **Python**  | `supabase-py`, FastAPI (risk engine), Streamlit, `langchain_groq`, Groq LLM |
+| **Tooling** | TypeScript, ESLint, Vercel (recommended for deployment) |
+
+---
+
+## Getting Started (Local)
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/your-username/skills-mirage-platform.git
+cd skills-mirage-platform
+
+npm install
+# or
+pnpm install
+```
+
+### 2. Supabase configuration
+
+Create a project in [Supabase](https://supabase.com), then in the dashboard:
+
+- Copy **Project URL** and **anon key**
+- Generate a **Service Role key** (server-only; never expose to the browser)
+
+### 3. Environment variables
+
+Create **`.env.local`** in the project root:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_public_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
+
+Create **`backend/.env`** for Python services:
+
+```env
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_anon_public_key
+SUPABASE_SERVICE_KEY=your_service_role_key
+NODE_ENV=development
+PORT=5000
+PYTHON_PORT=8000
+FRONTEND_URL=http://localhost:3000
+```
+
+> **Do not** commit `.env` or `.env.local` to Git.
+
+### 4. Database schema
+
+Ensure these tables exist in Supabase:
+
+- `profiles` – user metadata (`job_title`, `city`, `years_of_experience`, `daily_tasks`, etc.)
+- `naukri_jobs` – primary job feed
+- `jobs` – secondary job feed (salary, location, etc.)
+- `courses` – learning resources
+- `chat_messages` – chat memory for the Intel Agent
+
+Run the SQL in your `scripts/` folder or in the Supabase SQL editor if needed.
+
+### 5. Run the Next.js app
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open **http://localhost:3000**. Sign up or log in; once you set your **job title** on the Profile page, Market, Risk, and Reskilling sections will personalize to your role.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-## Learn More
+## Running the Streamlit Chatbot Locally
 
-To learn more, take a look at the following resources:
+1. **Install dependencies** (in the `Chatbot` folder):
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [v0 Documentation](https://v0.app/docs) - learn about v0 and how to use it.
+```bash
+cd Chatbot
+pip install -r requirements.txt
+```
 
-<a href="https://v0.app/chat/api/kiro/clone/Vedi27/skills-mirage-platform" alt="Open in Kiro"><img src="https://pdgvvgmkdvyeydso.public.blob.vercel-storage.com/open%20in%20kiro.svg?sanitize=true" /></a>
+2. **Set environment variables** (or use `secrets.toml` on Streamlit Cloud):
+
+```bash
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_service_role_or_anon_key
+GROQ_API_KEY=your_groq_api_key
+```
+
+3. **Run the app:**
+
+```bash
+streamlit run chatbot.py
+```
+
+The Streamlit chatbot will be at **http://localhost:8501**.
+
+---
+
+## Project Structure (Key Parts)
+
+```
+app/
+  dashboard/
+    page.tsx              # Command Center overview
+    market/page.tsx        # Market Signals (jobs, trends, stats)
+    risk/page.tsx         # Risk Analysis
+    reskilling/page.tsx   # Reskilling Paths
+    chat/page.tsx         # Intel Agent (in-app chatbot)
+  api/
+    chat/route.ts         # LLM-style chat endpoint (if used)
+    chatbot/route.ts      # Rule-based, Supabase-backed chatbot
+
+backend/
+  scrapers/
+    naukri_scraper.py     # Naukri scraper → Supabase
+  services/
+    vulnerability_scoring.py   # Risk scoring (FastAPI-ready)
+
+Chatbot/
+  chatbot.py              # Streamlit app (Supabase + Groq LLM)
+
+lib/supabase/
+  server.ts               # SSR client
+  admin.ts                # Service-role client
+
+components/dashboard/
+  market-trends-chart.tsx
+  job-postings-table.tsx
+  chat-interface.tsx
+  risk-gauge.tsx
+  ...
+```
+
+---
+
+## Roadmap Ideas
+
+- Role-based risk benchmarks by geography
+- Deeper integration between Streamlit chatbot and in-app Intel Agent
+- More granular salary insights (percentiles, experience bands)
+- Notifications/alerts for changes in market demand for the user's role
+
+---
+
+## License
+
+See the repository for license information.
