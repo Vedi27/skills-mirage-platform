@@ -2,13 +2,16 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = request.nextUrl
+  const { searchParams } = request.nextUrl
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/dashboard'
 
-  if (code) {
-    const redirectTo = new URL(next, origin)
-    const response = NextResponse.redirect(redirectTo)
+  const host = request.headers.get('host')
+  const protocol = request.headers.get('x-forwarded-proto') ?? 'https'
+  const origin = `${protocol}://${host}`
+
+  if (code && host) {
+    const response = NextResponse.redirect(`${origin}${next}`)
 
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
