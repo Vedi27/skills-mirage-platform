@@ -20,8 +20,9 @@ const CHATBOT_BASE =
 function buildChatbotUrl(accessToken: string | null): string {
   const base = CHATBOT_BASE.replace(/\/$/, '')
   const params = new URLSearchParams({ embed: 'true' })
-  if (accessToken) params.set('sb_token', accessToken)
-  return `${base}?${params.toString()}`
+  // NEW VERSION (Matches your Streamlit logic)
+if (accessToken) params.set('token', accessToken)
+return `${base}?${params.toString()}`
 }
 
 // ---------------------------------------------------------------------------
